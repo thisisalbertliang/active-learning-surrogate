@@ -1,6 +1,6 @@
 import torch
 
-from density import Density
+from al_surrogate.density import Density
 
 
 class TwoMoons(Density):
@@ -37,3 +37,17 @@ class TwoMoons(Density):
 
     def energy(self, z, beta=1.0):
         return -beta * self.log_prob(z)
+
+
+if __name__ == '__main__':
+    import os
+    from al_surrogate.density import plot_2d_density
+
+    two_moons = TwoMoons(dimension=2)
+    plot_2d_density(
+        density=two_moons, plot_energy=False,
+        xlim=(-3, 3), ylim=(-3, 3),
+        output_path=os.path.join(
+          'al_surrogate', 'toy_density', 'figures', 'two_moons.png'
+        )
+    )
