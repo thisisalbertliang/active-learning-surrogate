@@ -1,6 +1,6 @@
 import torch
 
-from al_surrogate.density import Density
+from ..density import Density
 
 
 class TwoMoons(Density):
@@ -9,7 +9,7 @@ class TwoMoons(Density):
     """
 
     def __init__(self, dimension):
-        super().__init__(dimension=2)
+        super().__init__(input_dimension=2)
         if dimension != 2:
             raise ValueError("TwoMoons is only defined for dimension 2.")
 

@@ -2,7 +2,7 @@ from typing import List
 import torch
 import torch.distributions as D
 
-from al_surrogate.density import Density
+from ..density import Density
 
 
 class UnimodalGaussian(Density):

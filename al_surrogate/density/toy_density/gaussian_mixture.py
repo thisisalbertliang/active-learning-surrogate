@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.distributions as D
 
-from al_surrogate.density import Density
+from ..density import Density
 
 
 class GaussianMixture(Density):
@@ -12,12 +12,11 @@ class GaussianMixture(Density):
         self,
         means: List[List[float]],
         covars: List[List[List[float]]],
-        mixture_prob: List[float],
+        mixture_probs: List[float],
         device=torch.device('cpu')
     ):
-        assert means is not None and covars is not None and mixture_prob is not None, 'means, covars and mixture_prob must be specified'
-        assert len(means) == len(covars) == len(mixture_prob), 'must have the same number of means, covars and mixture_prob'
-        assert np.isclose(np.sum(mixture_prob), 1.0), 'mixture_prob must sum to 1.0'
+        assert means is not None and covars is not None and mixture_probs is not None, 'means, covars and mixture_prob must be specified'
+        assert len(means) == len(covars) == len(mixture_probs), 'must have the same number of means, covars and mixture_prob'
         assert all(len(mean) == len(covar) == len(means[0]) for mean, covar in zip(means, covars)), 'must have same dimensionality for all means and covars'
 
         # Create a batch of MultivariateNormal distributions
@@ -27,13 +26,13 @@ class GaussianMixture(Density):
         )
 
         # Create a categorical distribution for the mixture probabilities
-        mix = D.Categorical(torch.tensor(mixture_prob, device=device))
+        mix = D.Categorical(torch.tensor(mixture_probs, device=device))
 
         # Create the mixture distribution
         self.gaussian_mixture = D.MixtureSameFamily(mix, components)
 
         # Dimensionality
-        super().__init__(dimension=len(means[0]))
+        super().__init__(input_dimension=len(means[0]))
 
     def log_prob(self, x):
         return self.gaussian_mixture.log_prob(x)
@@ -62,7 +61,7 @@ if __name__ == '__main__':
     bimodal_gaussian = GaussianMixture(
         means=[mean1, mean2],
         covars=[covar1, covar2],
-        mixture_prob=[0.5, 0.5],
+        mixture_probs=[0.5, 0.5],
     )
 
     plot_2d_density(
