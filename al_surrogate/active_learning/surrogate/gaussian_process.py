@@ -17,20 +17,18 @@ class GaussianProcess(Surrogate):
 
     def train(self, train_X: torch.Tensor, train_y: torch.Tensor) -> Tuple[torch.nn.Module, List[float]]:
         # assume zero noise
-        likelihood = gpytorch.likelihoods.FixedNoiseGaussianLikelihood(
-            noise=torch.zeros_like(train_y)
-        )
+        likelihood = gpytorch.likelihoods.GaussianLikelihood().to(self._device)
         # use exact inference for GP
         model = ExactGPModel(
             train_X=train_X,
             train_y=train_y,
             likelihood=likelihood
-        )
+        ).to(self._device)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self._args.lr)
 
         # marginal log likelihood loss
-        mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
+        mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model).to(self._device)
 
         model.train(); likelihood.train()
         losses = []
@@ -53,10 +51,10 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
     def __init__(self, train_X, train_y, likelihood):
         super(ExactGPModel, self).__init__(train_X, train_y, likelihood)
-        self.mean_module = gpytorch.means.ConstantMean()
+        self.mean_module = gpytorch.means.ConstantMean().to(train_X.device)
         self.covar_module = gpytorch.kernels.ScaleKernel(
             gpytorch.kernels.RBFKernel()
-        )
+        ).to(train_X.device)
         self._input_dimension = train_X.shape[1]
 
     def forward(self, x):
@@ -67,9 +65,7 @@ class ExactGPModel(gpytorch.models.ExactGP):
     def energy(self, x, beta=1):
         self.eval()
         self.likelihood.eval()
-        y_pred = self.likelihood(self(x))
-
-        return y_pred.mean
+        return self(x).mean
 
     @property
     def input_dimension(self) -> int:

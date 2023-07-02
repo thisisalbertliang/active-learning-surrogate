@@ -82,6 +82,55 @@ def create_density(args: argparse.Namespace, device: torch.device = torch.device
         raise ValueError(f'Unknown target: {args.target}')
 
 
+def plot_density(
+    args: argparse.Namespace,
+    density: Density, plot_energy: bool = True,
+    num_points: int = 100, figsize: Tuple[int, int] = (10.0, 10.0),
+    output_path: str = None,
+    scatter_points: torch.Tensor = None, scatter_point_label: str = None,
+    device: torch.device = torch.device('cpu'),
+) -> Optional[Tuple[Figure, Axes]]:
+    """ Plots 1D or 2D density
+
+    If density is not 1D or 2D, simply does nothing and returns None.
+
+    Args:
+        density: Density object
+        plot_energy: bool (default: True) If True, plot the negative energy function. Otherwise plot the density.
+        xlim: Tuple[float, float] (default: (-10, 10)) x-axis limits
+        ylim: Tuple[float, float] (default: (-10, 10)) y-axis limits
+        num_points: int (default: 100) Number of points (per dimension) to evaluate the density at
+        figsize: Tuple[int, int] (default: (10, 10)) Size of the figure
+        output_path: str (default: None) If None, return the figure. Otherwise save the figure to the given path.
+        device: torch.device (default: torch.device('cpu')) Device to evaluate the density on
+    """
+    if density.input_dimension == 2:
+        assert 'x' in args.input_ranges and 'y' in args.input_ranges, \
+            'For 2D densities, the input ranges must be specified as "x=[x_min, x_max], y=[y_min, y_max]"'
+        return plot_2d_density(
+            density=density, plot_energy=plot_energy,
+            xlim=args.input_ranges['x'], ylim=args.input_ranges['y'],
+            num_points=num_points, figsize=figsize,
+            output_path=output_path,
+            scatter_point_label=scatter_point_label, scatter_points=scatter_points,
+            device=device,
+        )
+    elif density.input_dimension == 1:
+        assert 'x' in args.input_ranges, \
+            'For 1D densities, the input ranges must be specified as "x=[x_min, x_max]"'
+        return plot_1d_density(
+            density=density, plot_energy=plot_energy,
+            xlim=args.input_ranges['x'],
+            num_points=num_points, figsize=figsize,
+            output_path=output_path,
+            scatter_point_label=scatter_point_label, scatter_points=scatter_points,
+            device=device,
+        )
+    else:
+        print(f"Cannot plot {density.input_dimension}D density")
+        return None
+
+
 def plot_2d_density(
     density: Density, plot_energy: bool = True,
     xlim: Tuple[float, float] = (-10.0, 10.0), ylim: Tuple[float, float] = (-10.0, 10.0),

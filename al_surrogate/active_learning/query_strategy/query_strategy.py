@@ -31,7 +31,7 @@ class QueryStrategy(ABC):
         return self._input_dimension
 
 
-def create_query_strategy(args: argparse.Namespace):
+def create_query_strategy(args: argparse.Namespace, device: torch.device) -> QueryStrategy:
     """Creates a query strategy based on the command line arguments.
 
     Args:
@@ -43,5 +43,8 @@ def create_query_strategy(args: argparse.Namespace):
     if args.query_strategy == 'uniform-sampling':
         from .uniform_sampling import UniformSampling
         return UniformSampling(args.input_ranges)
+    elif args.query_strategy == 'greedy-sampling':
+        from .greedy_sampling import GreedySampling
+        return GreedySampling(args.input_ranges, device=device)
     else:
         raise ValueError(f'Unknown query strategy: {args.query_strategy}')

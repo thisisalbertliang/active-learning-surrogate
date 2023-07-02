@@ -25,12 +25,14 @@ def parse_args():
     parser.add_argument('--surrogate', type=str, choices=['gaussian-process'], required=True)
 
     # Training configs
-    parser.add_argument('--num-active-learning-iterations', type=int, default=100,)
+    parser.add_argument('--num-active-learning-iterations', type=int, default=50,)
     parser.add_argument('--num-training-iterations', type=int, default=1000)
     parser.add_argument('--lr', type=float, default=1e-3)
 
     # Query strategy
-    parser.add_argument('--query-strategy', type=str, choices=['uniform-sampling'], required=True)
+    parser.add_argument('--query-strategy', type=str, choices=[
+        'uniform-sampling', 'greedy-sampling'
+    ], required=True)
     parser.add_argument('--batch-size', type=int, default=10)
     parser.add_argument('--input-ranges', action=ParseKwargs, default={})
 

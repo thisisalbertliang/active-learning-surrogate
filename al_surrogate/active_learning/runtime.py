@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 from .query_strategy import QueryStrategy
 from .surrogate import Surrogate
 from al_surrogate.utils.logging import log_scalars
-from al_surrogate.density import plot_2d_density, plot_1d_density
+from al_surrogate.density import plot_density
 
 
 def run_active_learning(
@@ -40,21 +40,11 @@ def run_active_learning(
 
     # helper function for plotting the surrogate density and training samples
     def plot_surrogate_density_and_samples(iteration: int):
-        if target.input_dimension == 2:
-            fig, _ = plot_2d_density(
-                density=model, plot_energy=True,
-                xlim=args.input_ranges['x'], ylim=args.input_ranges['y'],
-                scatter_points=train_X, scatter_point_label='training samples',
-                device=device,
-            )
-        elif target.input_dimension == 1:
-            fig, _ = plot_1d_density(
-                density=model, plot_energy=True,
-                xlim=args.input_ranges['x'],
-                scatter_points=train_X, scatter_point_label='training samples',
-                device=device,
-            )
-
+        fig, _ = plot_density(
+            args=args, density=model, plot_energy=True,
+            scatter_points=train_X, scatter_point_label='training samples',
+            device=device,
+        )
         if fig is not None:
             tb_writer.add_figure(
                 tag='surrogate_density', figure=fig, global_step=iteration, close=True,

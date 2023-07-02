@@ -1,1 +1,1 @@
-from .density import Density, create_density, plot_2d_density, plot_1d_density
+from .density import Density, create_density, plot_2d_density, plot_1d_density, plot_density
