@@ -31,7 +31,7 @@ def parse_args():
 
     # Query strategy
     parser.add_argument('--query-strategy', type=str, choices=[
-        'uniform-sampling', 'greedy-sampling'
+        'uniform-sampling', 'greedy-sampling', 'improved-greedy-sampling'
     ], required=True)
     parser.add_argument('--batch-size', type=int, default=10)
     parser.add_argument('--input-ranges', action=ParseKwargs, default={})

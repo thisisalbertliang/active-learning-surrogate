@@ -1,21 +1,22 @@
 import argparse
 from tqdm import tqdm
-from typing import Tuple, List
+from typing import List
 
 import torch
 
 import gpytorch
 
 from .surrogate import Surrogate
+from al_surrogate.density import Density
 
 
-class GaussianProcess(Surrogate):
+class GaussianProcess(Surrogate, Density):
     """Gaussian process surrogate model"""
 
     def __init__(self, args: argparse.Namespace, input_dimension: int, device: torch.device = torch.device('cpu')):
         super().__init__(args, input_dimension, device)
 
-    def train(self, train_X: torch.Tensor, train_y: torch.Tensor) -> Tuple[torch.nn.Module, List[float]]:
+    def train(self, train_X: torch.Tensor, train_y: torch.Tensor) -> List[float]:
         # assume zero noise
         likelihood = gpytorch.likelihoods.GaussianLikelihood().to(self._device)
         # use exact inference for GP
@@ -44,7 +45,24 @@ class GaussianProcess(Surrogate):
 
             losses.append(loss.item())
 
-        return model, losses
+        # save the trained model
+        self.model = model
+        return losses
+
+    def predict(self, X: torch.Tensor) -> torch.Tensor:
+        self.model.eval()
+        self.model.likelihood.eval()
+        with torch.no_grad():
+            return self.model(X).mean
+
+    def log_prob(self, x):
+        raise NotImplementedError('log_prob is not implemented for GaussianProcess')
+
+    def energy(self, x, beta=1):
+        return self.predict(x) * beta
+
+    def sample(self, num_samples: int) -> torch.Tensor:
+        raise NotImplementedError('sample is not implemented for GaussianProcess')
 
 
 class ExactGPModel(gpytorch.models.ExactGP):

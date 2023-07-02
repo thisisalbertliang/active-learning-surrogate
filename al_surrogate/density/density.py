@@ -11,7 +11,7 @@ from torch import nn
 import numpy as np
 
 
-class Density(nn.Module, ABC):
+class Density(ABC):
     """Base class for densities"""
 
     def __init__(self, input_dimension: int):
@@ -213,7 +213,11 @@ def plot_1d_density(
     if scatter_points is not None:
         assert scatter_points.shape[1] == 1, 'Scatter points must be 1D'
         scatter_points = scatter_points.cpu().numpy()
-        ax.scatter(scatter_points, np.zeros_like(scatter_points), color='red', label=scatter_point_label)
+        ax.scatter(
+            scatter_points, np.zeros_like(scatter_points),
+            color='red', alpha=0.5, label=scatter_point_label
+        )
+
 
     if output_path is None:
         return fig, ax

@@ -20,7 +20,7 @@ class Surrogate(ABC):
         self._input_dimension = input_dimension
 
     @abstractmethod
-    def train(self, train_X: torch.Tensor, train_y: torch.Tensor) -> Tuple[torch.nn.Module, List[float]]:
+    def train(self, train_X: torch.Tensor, train_y: torch.Tensor) -> List[float]:
         """Trains a surrogate model from scratch on the given data.
 
         Args:
@@ -29,7 +29,19 @@ class Surrogate(ABC):
             train_y (torch.Tensor): A tensor of shape (num_samples,) containing the corresponding scalar outputs.
 
         Returns:
-            Tuple[torch.nn.Module, List[float]]: A tuple containing the trained surrogate model and a list of training losses.
+            List[float]: A list of floats containing the training losses.
+        """
+        pass
+
+    @abstractmethod
+    def predict(self, X: torch.Tensor) -> torch.Tensor:
+        """Predicts the outputs for the given inputs using the last trained surrogate model.
+
+        Args:
+            X (torch.Tensor): A tensor of shape (num_samples, input_dimension) containing the samples.
+
+        Returns:
+            torch.Tensor: A tensor of shape (num_samples,) containing the predicted scalar outputs.
         """
         pass
 

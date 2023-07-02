@@ -17,20 +17,23 @@ class GreedySampling(QueryStrategy):
         * \sigma is the scaling function mapping from \mathcal{X} to [-1, 1]^d
     """
 
-    def __init__(self, input_ranges: Dict[str, Tuple[float, float]], device: torch.device = torch.device('cpu')):
+    def __init__(
+        self,
+        input_ranges: Dict[str, Tuple[float, float]],
+        target: torch.nn.Module,
+        device: torch.device = torch.device('cpu')
+    ):
         """Initializes the Greedy Sampling query strategy.
 
         Args:
             input_ranges (Dict[str, Tuple[float, float]]): Dictionary of input ranges.
         """
-        self.input_ranges = input_ranges
-        self.device = device
+        super().__init__(input_ranges, target, device)
 
-        self.samples = torch.empty((0, len(input_ranges))).to(device=self.device)
+        self.past_X = torch.empty((0, len(input_ranges))).to(device=self.device)
         self.min_vals = torch.tensor([v[0] for v in self.input_ranges.values()]).float().to(device=self.device)
         self.max_vals = torch.tensor([v[1] for v in self.input_ranges.values()]).float().to(device=self.device)
-
-        super().__init__(len(input_ranges))
+        self.range_widths = self.max_vals - self.min_vals
 
 
     def sample(self, num_samples: int) -> torch.Tensor:
@@ -41,35 +44,45 @@ class GreedySampling(QueryStrategy):
         and selecting the sample that maximizes the minimum distance.
 
         Args:
-            num_samples (int): Number of samples to generate.
+            num_samples (int): Number of new samples to generate.
 
         Returns:
             torch.Tensor: A tensor of shape (num_samples, input_dimension) containing the samples.
         """
-        for _ in range(num_samples):
-            # Generate Latin Hypercube Samples from the unit hypercube [0, 1]^d
-            candidates = torch.from_numpy(lhs(self.input_dimension, samples=1000)).to(device=self.device)
-            candidates = candidates.float()
-
-            # Scale the LHS to the correct input ranges
-            range_vals = self.max_vals - self.min_vals
-            candidates = self.min_vals + range_vals * candidates
-
-            # Compute the minimum distance to the existing samples for each candidate
-            if len(self.samples) > 0:
-                scaled_samples = scale(self.samples, self.input_ranges)
-                scaled_candidates = scale(candidates, self.input_ranges)
-                distances = (scaled_candidates[:, None, :] - scaled_samples[None, :, :]).norm(dim=-1).min(dim=-1)[0]
+        query_X = torch.empty((num_samples, self.input_dimension)).to(device=self.device)
+        for i in range(num_samples):
+            if len(self.past_X) == 0:
+                # If no past samples, just sample randomly
+                new_x = torch.rand(self.input_dimension).to(device=self.device)
+                new_x = self.min_vals + self.range_widths * new_x
             else:
-                distances = torch.full((len(candidates),), float('inf'))
+                # Generate Latin Hypercube Samples from the unit hypercube [0, 1]^d
+                candidates = torch.from_numpy(
+                    lhs(self.input_dimension, samples=1000)
+                ).float().to(device=self.device)
 
-            # Select the candidate that maximizes the minimum distance
-            new_sample = candidates[distances.argmax()]
+                # Scale the LHS to the correct input ranges
+                candidates = self.min_vals + self.range_widths * candidates
 
-            # Add the new sample to the existing samples
-            self.samples = torch.cat([self.samples, new_sample[None, :]], dim=0).to(device=self.device)
+                # Compute the minimum distance to the past samples for each candidate
+                scaled_past_samples = scale(self.past_X, self.input_ranges)
+                scaled_candidates = scale(candidates, self.input_ranges)
+                distances = (scaled_candidates[:, None, :] - scaled_past_samples[None, :, :]).norm(dim=-1).min(dim=-1)[0]
 
-        return self.samples
+                # Select the candidate that maximizes the minimum distance
+                new_x = candidates[distances.argmax()]
+
+            # Add the new sample to be returned
+            query_X[i, :] = new_x
+
+            # Add the new sample to all past samples
+            self.past_X = torch.cat(
+                (self.past_X, new_x.view(1, -1)),
+                dim=0,
+            )
+
+        query_Y = self.target(query_X)
+        return query_X, query_Y
 
 
 def scale(x: torch.Tensor, input_ranges: Dict[str, Tuple[float, float]]) -> torch.Tensor:

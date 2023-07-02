@@ -11,12 +11,20 @@ class UniformSampling(QueryStrategy):
 
     This is the most basic acquisition function. It simply samples uniformly from the population.
     """
-    def __init__(self, input_ranges: Dict[str, Tuple[float, float]]):
+    def __init__(
+        self,
+        input_ranges: Dict[str, Tuple[float, float]],
+        target: torch.nn.Module,
+        device: torch.device = torch.device('cpu'),
+    ):
         """Initialize the class with the search space.
 
         Args:
             uniform_ranges (dict): A dictionary of input names and their ranges.
         """
+        super().__init__(input_ranges, target, device)
+
+        # overwrite the input_ranges with hyperopt's format
         self.input_ranges = {
             k: hp.uniform(k, low, high) for k, (low, high) in input_ranges.items()
         }
@@ -30,7 +38,9 @@ class UniformSampling(QueryStrategy):
             sample_list = [sample_dict[input] for input in self.input_order]
             samples.append(sample_list)
 
-        return torch.tensor(samples)
+        query_X = torch.tensor(samples, device=self.device)
+        query_Y = self.target(query_X)
+        return query_X, query_Y
 
 
 if __name__ == '__main__':

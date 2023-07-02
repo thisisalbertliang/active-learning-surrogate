@@ -28,10 +28,12 @@ def main(args: argparse.Namespace):
         )
 
     surrogate = create_surrogate(args, target.input_dimension, device)
-    query_strategy = create_query_strategy(args, device=device)
+    query_strategy = create_query_strategy(
+        args=args, surrogate=surrogate, target=target, device=device,
+    )
 
-    model, train_X, _ = run_active_learning(
-        args=args, surrogate=surrogate, target=target,
+    train_X, _ = run_active_learning(
+        args=args, surrogate=surrogate,
         query_strategy=query_strategy,
         tb_writer=tb_writer,
         device=device,
@@ -39,7 +41,7 @@ def main(args: argparse.Namespace):
 
     # density plot of the final surrogate and training samples
     surrogate_and_samples_fig, _ = plot_density(
-        args=args, density=model, plot_energy=True,
+        args=args, density=surrogate, plot_energy=True,
         scatter_points=train_X, scatter_point_label='training samples',
         device=device,
     )
