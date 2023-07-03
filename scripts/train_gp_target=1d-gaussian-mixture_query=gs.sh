@@ -1,5 +1,6 @@
 #!/bin/bash
 
+script_name=$(basename $0)
 python -m al_surrogate.main \
     --target "gaussian-mixture" \
     --means "[[-10.0], [10.0]]" \
@@ -8,4 +9,5 @@ python -m al_surrogate.main \
     --query-strategy "greedy-sampling" \
     --batch-size 10 \
     --input-ranges "{'x': [-20.0, 20.0]}" \
-    --num-active-learning-iterations 50
+    --num-active-learning-iterations 50 \
+    --experiment-name $script_name

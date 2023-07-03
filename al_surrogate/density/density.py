@@ -174,7 +174,11 @@ def plot_2d_density(
     # Optionally plot the scatter points
     if scatter_points is not None:
         assert scatter_points.shape[1] == 2, 'Scatter points must be 2D'
-        ax.scatter(scatter_points[:, 0].cpu(), scatter_points[:, 1].cpu(), color='red', label=scatter_point_label)
+        scatter_points = scatter_points.cpu().numpy()
+        ax.scatter(
+            scatter_points[:, 0], scatter_points[:, 1],
+            color='red', alpha=0.5, label=scatter_point_label
+        )
 
     if output_path is None:
         return fig, ax

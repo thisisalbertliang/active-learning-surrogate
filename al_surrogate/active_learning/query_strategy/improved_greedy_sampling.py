@@ -1,3 +1,4 @@
+import argparse
 from typing import Dict, Tuple
 import torch
 from pyDOE2 import lhs
@@ -31,11 +32,7 @@ class ImprovedGreedySampling(QueryStrategy):
         surrogate: Surrogate,
         device: torch.device = torch.device('cpu')
     ):
-        """Initializes the Improved Greedy Sampling query strategy.
-
-        Args:
-            input_ranges (Dict[str, Tuple[float, float]]): Dictionary of input ranges.
-        """
+        """Initializes the Improved Greedy Sampling query strategy."""
         super().__init__(input_ranges, target, device)
         self.surrogate: Surrogate = surrogate
 

@@ -11,8 +11,11 @@ def get_experiment_name(args):
         args.surrogate,
         f"target={args.target}",
         f"query-strategy={args.query_strategy}",
-        strftime('%Y-%m-%d-%H-%M-%S', gmtime()),
+    ] if args.experiment_name is None else [
+        args.experiment_name,
     ]
+
+    name.append(strftime('%Y-%m-%d-%H-%M-%S', gmtime()))
 
     return '_'.join(name)
 

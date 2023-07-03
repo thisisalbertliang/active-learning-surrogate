@@ -16,10 +16,6 @@ class QueryStrategy(ABC):
         target: torch.nn.Module,
         device: torch.device = torch.device('cpu'),
     ):
-        """
-        Args:
-            input_dimension (int): Dimension of the input space.
-        """
         self.input_ranges: Dict[str, Tuple[float, float]] = input_ranges
         self.input_dimension: int = len(input_ranges)
         self.target: Density = target
@@ -46,9 +42,6 @@ def create_query_strategy(
 ) -> QueryStrategy:
     """Creates a query strategy based on the command line arguments.
 
-    Args:
-        args (argparse.Namespace): Command line arguments.
-
     Returns:
         QueryStrategy: A query strategy.
     """
@@ -69,6 +62,15 @@ def create_query_strategy(
     elif args.query_strategy == 'improved-greedy-sampling':
         from .improved_greedy_sampling import ImprovedGreedySampling
         return ImprovedGreedySampling(
+            input_ranges=args.input_ranges,
+            target=target,
+            surrogate=surrogate,
+            device=device,
+        )
+    elif args.query_strategy == 'query-by-committee':
+        from .query_by_committee import QueryByCommittee
+        return QueryByCommittee(
+            args=args,
             input_ranges=args.input_ranges,
             target=target,
             surrogate=surrogate,

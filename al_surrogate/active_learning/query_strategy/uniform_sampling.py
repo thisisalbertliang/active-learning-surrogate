@@ -1,3 +1,4 @@
+import argparse
 from typing import Dict, Tuple
 import torch
 from hyperopt import hp
@@ -17,11 +18,7 @@ class UniformSampling(QueryStrategy):
         target: torch.nn.Module,
         device: torch.device = torch.device('cpu'),
     ):
-        """Initialize the class with the search space.
-
-        Args:
-            uniform_ranges (dict): A dictionary of input names and their ranges.
-        """
+        """Initialize the class with the search space."""
         super().__init__(input_ranges, target, device)
 
         # overwrite the input_ranges with hyperopt's format

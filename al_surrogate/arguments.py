@@ -31,10 +31,15 @@ def parse_args():
 
     # Query strategy
     parser.add_argument('--query-strategy', type=str, choices=[
-        'uniform-sampling', 'greedy-sampling', 'improved-greedy-sampling'
+        'uniform-sampling', 'greedy-sampling', 'improved-greedy-sampling', 'query-by-committee'
     ], required=True)
     parser.add_argument('--batch-size', type=int, default=10)
     parser.add_argument('--input-ranges', action=ParseKwargs, default={})
+    # Query-by-committee
+    parser.add_argument('--num-committee-members', type=int, default=5)
+
+    # Misc
+    parser.add_argument('--experiment-name', type=str, default=None)
 
     return parser.parse_args()
 

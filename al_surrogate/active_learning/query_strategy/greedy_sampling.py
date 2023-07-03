@@ -1,3 +1,4 @@
+import argparse
 from typing import Dict, Tuple
 import torch
 from pyDOE2 import lhs
@@ -23,11 +24,7 @@ class GreedySampling(QueryStrategy):
         target: torch.nn.Module,
         device: torch.device = torch.device('cpu')
     ):
-        """Initializes the Greedy Sampling query strategy.
-
-        Args:
-            input_ranges (Dict[str, Tuple[float, float]]): Dictionary of input ranges.
-        """
+        """Initializes the Greedy Sampling query strategy."""
         super().__init__(input_ranges, target, device)
 
         self.past_X = torch.empty((0, len(input_ranges))).to(device=self.device)
@@ -81,7 +78,7 @@ class GreedySampling(QueryStrategy):
                 dim=0,
             )
 
-        query_Y = self.target(query_X)
+        query_Y = self.target.energy(query_X)
         return query_X, query_Y
 
 
